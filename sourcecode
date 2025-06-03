@@ -1,6 +1,49 @@
+/*
+Name: Raymond, Akhil, Shrihan
+Date: 6/3/25
+Project Name: Maze Game/Solver
+Extra: GUI
+*/
 #include <iostream>
+#include <cstdlib>
+#include <vector>
+#include <ctime>
+#include <queue>
 using namespace std;
 
-int main() {
+void generateMaze(int length, vector<vector<char>>& maze) {
+    for (int i = 0; i < length; i++) {
+        for (int j = 0; j < length; j++) {
+            maze[i][j] = (rand() % 3 == 1) ? '#' : '.'; // Ternary operator used as if statement
+        }
+    }
+    // Creating Exit & Start Position
+    int ex = rand() % length;
+    int ey = rand() % length;
+    int sx = rand() % length;
+    int sy = rand() % length;
+    maze[ex][ey] = 'E';
+    maze[sx][sy] = 'S';
+    for (int i = 0; i < length; i++) { // Printing out maze
+        for (int j = 0; j < length; j++) {
+            cout << maze[i][j] << ' ';
+        }
+        cout << "\n";
+    }
+}
 
+void solveMaze(int length, vector<vector<char>>& maze) {
+    
+}
+
+int main() {
+    srand(time(0));
+    int length;
+    cout << "Enter the maze length: ";
+    cin >> length;
+    vector<vector<char>> maze(length, vector<char>(length)); // Initializes 2D vector
+    generateMaze(length, maze);
+    cout << "Maze has been generated." << endl;
+    solveMaze(length, maze);
+    return 0;
 }
