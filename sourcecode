@@ -2,7 +2,7 @@
 Name: Raymond, Akhil, Shrihan
 Date: 6/3/25
 Project Name: Maze Game/Solver
-Extra: GUI
+Extra: Pairs, Queues, Backtracking (BFS)
 */
 #include <iostream>
 #include <cstdlib>
@@ -39,7 +39,61 @@ pair<pair<int, int>, pair<int, int>> generateMaze(int length, vector<vector<char
 
 void solveMaze(int length, vector<vector<char>>& maze, pair<int, int> start, pair<int, int> end) {
     vector<pair<int, int>> dirs = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
-    
+    queue<pair<int, int>> q;
+    vector<vector<bool>> visited(length, vector<bool>(length, false));
+    vector<vector<pair<int, int>>> before(length, vector<pair<int, int>>(length, make_pair(-1, -1)));
+    int sx = start.first;
+    int sy = start.second;
+    int ex = end.first;
+    int ey = end.second;
+    q.push(make_pair(sx, sy));
+    visited[sx][sy] = true;
+    bool fnd = false;
+    while (!q.empty() && !fnd) {
+        pair<int, int> crnt = q.front();
+        q.pop();
+        int x = crnt.first;
+        int y = crnt.second;
+        
+        for (int i = 0; i < dirs.size(); i++) {
+            int dx = dirs[i].first;
+            int dy = dirs[i].second;
+            int nx = x + dx;
+            int ny = y + dy;
+            if (nx >= 0 && ny >= 0 && nx < length && ny < length &&
+                !visited[nx][ny] && (maze[nx][ny] == '.' || maze[nx][ny] == 'E')) {
+                visited[nx][ny] = true;
+                before[nx][ny] = make_pair(x, y);
+                q.push(make_pair(nx, ny));
+                if (nx == ex && ny == ey) {
+                    fnd = true;
+                    break;
+                }
+            }
+        }
+    }
+    if (fnd) {
+        int crx = ex;
+        int cry = ey;
+        while(before[crx][cry] != make_pair(-1, -1)) { // Backtracking through all previously visited coordinates
+            pair<int, int> prev = before[crx][cry];
+            if (maze[crx][cry] != 'E') {
+                maze[crx][cry] = '|'; // Marking path using lines
+            }
+            crx = prev.first;
+            cry = prev.second;
+        }
+        for (int i = 0; i < length; i++) {
+            for (int j = 0; j < length; j++) {
+                cout << maze[i][j] << ' ';
+            }
+            cout << "\n";
+        }
+        cout << "A solution has been found! Lines indicate the shortest path to get from S, the starting point, to E, the exit point." << endl;
+    }
+    else {
+        cout << "No path has been found that connects S, the starting point, and E the exit point." << endl;
+    }
 }
 
 int main() {
@@ -52,6 +106,6 @@ int main() {
     pair<int, int> st = pos.first;
     pair<int, int> end = pos.second;
     cout << "Maze has been generated." << endl;
-    solveMaze(length, maze);
+    solveMaze(length, maze, st, end);
     return 0;
 }
