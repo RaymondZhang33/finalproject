@@ -11,7 +11,7 @@ Extra: GUI
 #include <queue>
 using namespace std;
 
-void generateMaze(int length, vector<vector<char>>& maze) {
+pair<pair<int, int>, pair<int, int>> generateMaze(int length, vector<vector<char>>& maze) {
     for (int i = 0; i < length; i++) {
         for (int j = 0; j < length; j++) {
             maze[i][j] = (rand() % 3 == 1) ? '#' : '.'; // Ternary operator used as if statement
@@ -22,6 +22,10 @@ void generateMaze(int length, vector<vector<char>>& maze) {
     int ey = rand() % length;
     int sx = rand() % length;
     int sy = rand() % length;
+    while (sx == ex && sy == ey) { // Ensure start != end
+        ex = rand() % length;
+        ey = rand() % length;
+    }
     maze[ex][ey] = 'E';
     maze[sx][sy] = 'S';
     for (int i = 0; i < length; i++) { // Printing out maze
@@ -30,9 +34,11 @@ void generateMaze(int length, vector<vector<char>>& maze) {
         }
         cout << "\n";
     }
+    return {{sx, sy}, {ex, ey}};
 }
 
-void solveMaze(int length, vector<vector<char>>& maze) {
+void solveMaze(int length, vector<vector<char>>& maze, pair<int, int> start, pair<int, int> end) {
+    vector<pair<int, int>> dirs = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
     
 }
 
@@ -42,7 +48,9 @@ int main() {
     cout << "Enter the maze length: ";
     cin >> length;
     vector<vector<char>> maze(length, vector<char>(length)); // Initializes 2D vector
-    generateMaze(length, maze);
+    pair<pair<int, int>, pair<int, int>> pos = generateMaze(length, maze);
+    pair<int, int> st = pos.first;
+    pair<int, int> end = pos.second;
     cout << "Maze has been generated." << endl;
     solveMaze(length, maze);
     return 0;
