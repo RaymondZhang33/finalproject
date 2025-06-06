@@ -37,11 +37,55 @@ pair<pair<int, int>, pair<int, int>> generateMaze(int length, vector<vector<char
     return {{sx, sy}, {ex, ey}};
 }
 
+void userSolve(int length, vector<vector<char>>& maze, pair<int, int> start, pair<int, int> end) {
+    bool solved = false;
+    char move;
+    int sx = start.first;
+    int sy = start.second;
+    int ex = end.first;
+    int ey = end.second;
+    while (!solved) { // Goes until user solves the maze or gives up
+        for (int i = 0; i < length; i++) {
+            for (int j = 0; j < length; j++) {
+                cout << maze[i][j] << ' ';
+            }
+            cout << "\n";
+        }
+        cout << "Where would you like to move? (Use WASD to move. W = Up, A = Left, S = Down, D = Right. Type in the corresponding character. If you would like to give up, type E) ";
+        cin >> move;
+        pair<int, int> fine = {sx, sy};
+        if (move == 'W') {
+            sx -= 1;
+        }
+        else if (move == 'A') {
+            sy -= 1;
+        }
+        else if (move == 'S') {
+            sx += 1;
+        }
+        else if (move == 'D') {
+            sy += 1;
+        }
+        else if (move == 'E') {
+            break;
+        }
+        else {
+            cout << "You did not enter a valid move." << endl;
+        }
+        if (sx < length & sy < length & sx >= 0 & sy >= 0) {
+            maze[sx][sy] = '|';
+        }
+        else {
+
+        }
+    }
+}
+
 void solveMaze(int length, vector<vector<char>>& maze, pair<int, int> start, pair<int, int> end) {
     vector<pair<int, int>> dirs = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
-    queue<pair<int, int>> q;
+    queue<pair<int, int>> q; // Initializes a queue
     vector<vector<bool>> visited(length, vector<bool>(length, false));
-    vector<vector<pair<int, int>>> before(length, vector<pair<int, int>>(length, make_pair(-1, -1)));
+    vector<vector<pair<int, int>>> before(length, vector<pair<int, int>>(length, make_pair(-1, -1))); // Creates a 2D vector that has inner vectors containing pairs of integers (each pair is initialized to -1, -1)
     int sx = start.first;
     int sy = start.second;
     int ex = end.first;
@@ -58,14 +102,14 @@ void solveMaze(int length, vector<vector<char>>& maze, pair<int, int> start, pai
         for (int i = 0; i < dirs.size(); i++) {
             int dx = dirs[i].first;
             int dy = dirs[i].second;
-            int nx = x + dx;
+            int nx = x + dx; // Tries moving in the current direction
             int ny = y + dy;
             if (nx >= 0 && ny >= 0 && nx < length && ny < length &&
                 !visited[nx][ny] && (maze[nx][ny] == '.' || maze[nx][ny] == 'E')) {
                 visited[nx][ny] = true;
                 before[nx][ny] = make_pair(x, y);
                 q.push(make_pair(nx, ny));
-                if (nx == ex && ny == ey) {
+                if (nx == ex && ny == ey) { // If the new coordinates equal to the coordinates of the exit, a solution has been found
                     fnd = true;
                     break;
                 }
@@ -99,6 +143,7 @@ void solveMaze(int length, vector<vector<char>>& maze, pair<int, int> start, pai
 int main() {
     srand(time(0));
     int length;
+    char ans;
     cout << "Enter the maze length: ";
     cin >> length;
     vector<vector<char>> maze(length, vector<char>(length)); // Initializes 2D vector
@@ -106,6 +151,18 @@ int main() {
     pair<int, int> st = pos.first;
     pair<int, int> end = pos.second;
     cout << "Maze has been generated." << endl;
-    solveMaze(length, maze, st, end);
+    cout << "Would you like to try and solve the maze? (y or n) ";
+    cin >> ans;
+    bool solved = false;
+    if (ans == 'y') {
+        userSolve(length, maze, st, end);
+    }
+    else if (ans == 'n') {
+        cout << "Alright, if a solution to the maze has been found, it will now be generated." << endl;
+        solveMaze(length, maze, st, end);
+    }
+    else {
+        cout << "You did not enter a valid answer. Exiting now..." << endl;
+    }
     return 0;
 }
