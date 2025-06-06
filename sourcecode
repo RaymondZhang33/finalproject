@@ -38,55 +38,61 @@ pair<pair<int, int>, pair<int, int>> generateMaze(int length, vector<vector<char
 }
 
 void userSolve(int length, vector<vector<char>>& maze, pair<int, int> start, pair<int, int> end) {
-    bool solved = false;
     char move;
     int sx = start.first;
     int sy = start.second;
     int ex = end.first;
     int ey = end.second;
     int moves = 0;
-    while (!solved) { // Goes until user solves the maze or gives up
+    if (maze[sx][sy] != 'S') {
+        maze[sx][sy] = '+';
+    }
+    while (true) {
         for (int i = 0; i < length; i++) {
             for (int j = 0; j < length; j++) {
                 cout << maze[i][j] << ' ';
             }
             cout << "\n";
         }
-        cout << "Where would you like to move? (Use WASD to move. W = Up, A = Left, S = Down, D = Right. Type in the corresponding character. If you would like to give up, type E) ";
+        cout << "Where would you like to move? (WASD or E to exit): ";
         cin >> move;
-        int tempx = sx;
-        int tempy = sy;
-        if (move == 'W') {
-            sx -= 1;
-        }
-        else if (move == 'A') {
-            sy -= 1;
-        }
-        else if (move == 'S') {
-            sx += 1;
-        }
-        else if (move == 'D') {
-            sy += 1;
-        }
-        else if (move == 'E') {
+        move = toupper(move);
+        if (move == 'E') {
+            cout << "You gave up after " << moves << " moves.\n";
             break;
         }
-        if (sx < length & sy < length & sx >= 0 & sy >= 0 & (maze[sx][sy] == '.' || maze[sx][sy] == 'E')) {
-            maze[sx][sy] = '+';
-            moves++;
-            if (maze[tempx][tempy] == '.') {
-                maze[tempx][tempy] = '.';
-            }
-            if (maze[sx][sy] == 'E') {
-                cout << "Congratulations, you have found a solution! It took you " << moves << " moves." << endl;
-                break;
-            }
-        }
+        int nx = sx, ny = sy;
+        if (move == 'W') nx--;
+        else if (move == 'A') ny--;
+        else if (move == 'S') nx++;
+        else if (move == 'D') ny++;
         else {
-            cout << "Invalid move." << endl;
-            sx = tempx;
-            sy = tempy;
+            cout << "Invalid input.\n";
+            continue;
         }
+        if (nx < 0 || ny < 0 || nx >= length || ny >= length) {
+            cout << "That move would go out of bounds. Try again.\n";
+            continue;
+        }
+        if (maze[nx][ny] != '.' && maze[nx][ny] != 'E' && maze[nx][ny] != 'S') {
+            cout << "That space is blocked. Try again.\n";
+            continue;
+        }
+        if (make_pair(sx, sy) == start) {
+            maze[sx][sy] = 'S';
+        } 
+        else {
+            maze[sx][sy] = '.';
+        }
+        sx = nx;
+        sy = ny;
+        if (maze[sx][sy] == 'E') {
+            moves++;
+            cout << "Congratulations! You reached the exit in " << moves << " moves.\n";
+            break;
+        }
+        maze[sx][sy] = '+';
+        moves++;
     }
 }
 
@@ -128,10 +134,12 @@ void solveMaze(int length, vector<vector<char>>& maze, pair<int, int> start, pai
     if (fnd) {
         int crx = ex;
         int cry = ey;
+        int movecnt = 1; // Include move to exit
         while(before[crx][cry] != make_pair(-1, -1)) { // Backtracking through all previously visited coordinates
             pair<int, int> prev = before[crx][cry];
             if (maze[crx][cry] != 'E') {
                 maze[crx][cry] = '|'; // Marking path using lines
+                movecnt++;
             }
             crx = prev.first;
             cry = prev.second;
@@ -143,6 +151,7 @@ void solveMaze(int length, vector<vector<char>>& maze, pair<int, int> start, pai
             cout << "\n";
         }
         cout << "A solution has been found! Lines indicate the shortest path to get from S, the starting point, to E, the exit point." << endl;
+        cout << "The shortest possible exit route took " << movecnt << " moves." << endl;
     }
     else {
         cout << "No path has been found that connects S, the starting point, and E the exit point." << endl;
@@ -165,6 +174,8 @@ int main() {
     bool solved = false;
     if (ans == 'y') {
         userSolve(length, maze, st, end);
+        cout << "Alright, if a solution to the maze has been found, it will now be generated." << endl;
+        solveMaze(length, maze, st, end);
     }
     else if (ans == 'n') {
         cout << "Alright, if a solution to the maze has been found, it will now be generated." << endl;
