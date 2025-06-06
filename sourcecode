@@ -44,6 +44,7 @@ void userSolve(int length, vector<vector<char>>& maze, pair<int, int> start, pai
     int sy = start.second;
     int ex = end.first;
     int ey = end.second;
+    int moves = 0;
     while (!solved) { // Goes until user solves the maze or gives up
         for (int i = 0; i < length; i++) {
             for (int j = 0; j < length; j++) {
@@ -53,7 +54,8 @@ void userSolve(int length, vector<vector<char>>& maze, pair<int, int> start, pai
         }
         cout << "Where would you like to move? (Use WASD to move. W = Up, A = Left, S = Down, D = Right. Type in the corresponding character. If you would like to give up, type E) ";
         cin >> move;
-        pair<int, int> fine = {sx, sy};
+        int tempx = sx;
+        int tempy = sy;
         if (move == 'W') {
             sx -= 1;
         }
@@ -69,14 +71,21 @@ void userSolve(int length, vector<vector<char>>& maze, pair<int, int> start, pai
         else if (move == 'E') {
             break;
         }
-        else {
-            cout << "You did not enter a valid move." << endl;
+        if (sx < length & sy < length & sx >= 0 & sy >= 0 & (maze[sx][sy] == '.' || maze[sx][sy] == 'E')) {
+            maze[sx][sy] = '+';
+            moves++;
+            if (maze[tempx][tempy] == '.') {
+                maze[tempx][tempy] = '.';
+            }
+            if (maze[sx][sy] == 'E') {
+                cout << "Congratulations, you have found a solution! It took you " << moves << " moves." << endl;
+                break;
+            }
         }
-        if (sx < length & sy < length & sx >= 0 & sy >= 0) {
-            maze[sx][sy] = '|';
-        }
         else {
-
+            cout << "Invalid move." << endl;
+            sx = tempx;
+            sy = tempy;
         }
     }
 }
