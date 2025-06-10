@@ -50,14 +50,14 @@ void userSolve(int length, vector<vector<char> >& maze, pair<int, int> start, pa
     }
     userPath.push_back(start); // Store starting position to path
     while (true) {
-        cout << "\x1b[2J\033[H" << endl;
+        cout << "\x1b[2J\033[H" << endl; 
         for (int i = 0; i < length; i++) {
             for (int j = 0; j < length; j++) {
                 cout << maze[i][j] << ' ';
             }
             cout << "\n";
         }
-        cout << "Where would you like to move? (WASD or E to exit): ";
+        cout << "Where would you like to move? (WASD or E to give up): ";
         cin >> move;
         move = toupper(move);
         if (move == 'E') {
@@ -222,7 +222,9 @@ int main() {
             }
         }
         bool solved = !gaveUp && (!userPath.empty() && userPath.back() == end);
-        cout << "Alright, if a solution to the maze has been found, it will now be generated." << endl;
+        if (!solved) {
+            cout << "Alright, if a solution to the maze has been found, it will now be generated." << endl; // Only print if user hasn't solved it
+        }
         solveMaze(length, maze, st, end, solved);
     }
     else if (ans == 'n') {
