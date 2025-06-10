@@ -37,7 +37,7 @@ pair<pair<int, int>, pair<int, int> > generateMaze(int length, vector<vector<cha
     return make_pair(make_pair(sx, sy), make_pair(ex, ey));
 }
 
-void userSolve(int length, vector<vector<char> >& maze, pair<int, int> start, pair<int, int> end, vector<pair<int, int> >& userPath, bool& gaveUp) {
+int userSolve(int length, vector<vector<char> >& maze, pair<int, int> start, pair<int, int> end, vector<pair<int, int> >& userPath, bool& gaveUp) {
     char move;
     int sx = start.first;
     int sy = start.second;
@@ -114,20 +114,10 @@ void userSolve(int length, vector<vector<char> >& maze, pair<int, int> start, pa
         maze[sx][sy] = '+';
         moves++;
     }
+    return moves;
 }
 
-void solveMaze(int length, vector<vector<char> >& maze, pair<int, int> start, pair<int, int> end, bool userCompleted) {
-    if (userCompleted) {
-        for (int i = 0; i < length; i++) {
-            for (int j = 0; j < length; j++) {
-                cout << maze[i][j] << ' ';
-            }
-            cout << "\n";
-        }
-        cout << "Your path (+) is displayed above." << endl;
-        return;
-    }
-
+int solveMaze(int length, vector<vector<char> >& maze, pair<int, int> start, pair<int, int> end) {
     vector<pair<int, int> > dirs;
     dirs.push_back(make_pair(-1, 0));
     dirs.push_back(make_pair(1, 0));
@@ -167,10 +157,10 @@ void solveMaze(int length, vector<vector<char> >& maze, pair<int, int> start, pa
             }
         }
     }
+    int movecnt = 1;
     if (fnd) {
         int crx = ex;
         int cry = ey;
-        int movecnt = 1;
         while(before[crx][cry] != make_pair(-1, -1)) {
             pair<int, int> prev = before[crx][cry];
             if (maze[crx][cry] != 'E') {
@@ -192,6 +182,7 @@ void solveMaze(int length, vector<vector<char> >& maze, pair<int, int> start, pa
     else {
         cout << "No path has been found that connects S, the starting point, and E the exit point." << endl;
     }
+    return movecnt;
 }
 
 int main() {
@@ -213,23 +204,32 @@ int main() {
     cin >> ans;
     vector<pair<int, int> > userPath;
     bool gaveUp = false;
+    vector<vector<char> > maze2 = maze; // Duplicate maze for editing
     if (ans == 'y') {
-        userSolve(length, maze, st, end, userPath, gaveUp);
+        int usermoves = userSolve(length, maze, st, end, userPath, gaveUp);
         if (!gaveUp) {
             for (auto &pos : userPath) {
-                if (maze[pos.first][pos.second] != 'S' && maze[pos.first][pos.second] != 'E')
-                    maze[pos.first][pos.second] = '+';
+                if (maze2[pos.first][pos.second] != 'S' && maze2[pos.first][pos.second] != 'E')
+                    maze2[pos.first][pos.second] = '+';
             }
+            for (int i = 0; i < length; i++) {
+                for (int j = 0; j < length; j++) {
+                    cout << maze2[i][j] << ' ';
+                }
+                cout << "\n";
+            }
+            cout << "Your path (+) is displayed above." << endl;
         }
-        bool solved = !gaveUp && (!userPath.empty() && userPath.back() == end);
-        if (!solved) {
-            cout << "Alright, if a solution to the maze has been found, it will now be generated." << endl; // Only print if user hasn't solved it
+        int algmoves = solveMaze(length, maze, st, end);
+        if (algmoves == usermoves) {
+            cout << "Well done, you found the shortest exit route." << endl;
         }
-        solveMaze(length, maze, st, end, solved);
+        else {
+            cout << "Your exit route was longer than the shortest one." << endl;
+        }
     }
     else if (ans == 'n') {
-        cout << "Alright, if a solution to the maze has been found, it will now be generated." << endl;
-        solveMaze(length, maze, st, end, false);
+        solveMaze(length, maze, st, end);
     }
     else {
         cout << "You did not enter a valid answer. Exiting now..." << endl;
