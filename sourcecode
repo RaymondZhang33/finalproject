@@ -11,7 +11,7 @@ Extra: Pairs, Queues, Backtracking (BFS)
 #include <queue>
 using namespace std;
 
-pair<pair<int, int>, pair<int, int>> generateMaze(int length, vector<vector<char>>& maze) {
+pair<pair<int, int>, pair<int, int> > generateMaze(int length, vector<vector<char> >& maze) {
     for (int i = 0; i < length; i++) {
         for (int j = 0; j < length; j++) {
             maze[i][j] = (rand() % 3 == 1) ? '#' : '.'; // Ternary operator used as if statement
@@ -34,19 +34,21 @@ pair<pair<int, int>, pair<int, int>> generateMaze(int length, vector<vector<char
         }
         cout << "\n";
     }
-    return {{sx, sy}, {ex, ey}};
+    return make_pair(make_pair(sx, sy), make_pair(ex, ey));
 }
 
-void userSolve(int length, vector<vector<char>>& maze, pair<int, int> start, pair<int, int> end) {
+void userSolve(int length, vector<vector<char> >& maze, pair<int, int> start, pair<int, int> end, vector<pair<int, int> >& userPath, bool& gaveUp) {
     char move;
     int sx = start.first;
     int sy = start.second;
     int ex = end.first;
     int ey = end.second;
     int moves = 0;
+    gaveUp = false;
     if (maze[sx][sy] != 'S') {
         maze[sx][sy] = '+';
     }
+    userPath.push_back(start); // Store starting position to path
     while (true) {
         cout << "\x1b[2J\033[H" << endl;
         for (int i = 0; i < length; i++) {
@@ -60,6 +62,22 @@ void userSolve(int length, vector<vector<char>>& maze, pair<int, int> start, pai
         move = toupper(move);
         if (move == 'E') {
             cout << "You gave up after " << moves << " moves.\n";
+            gaveUp = true;
+            // Revert user path '+' marks except start and end
+            for (int i = 0; i < length; i++) {
+                for (int j = 0; j < length; j++) {
+                    if (maze[i][j] == '+' && !(i == sx && j == sy)) {
+                        maze[i][j] = '.';
+                    }
+                }
+            }
+            // Also revert the user's final position if marked '+' (the current position)
+            if (!userPath.empty()) {
+                pair<int,int> lastPos = userPath.back();
+                if (maze[lastPos.first][lastPos.second] == '+' && maze[lastPos.first][lastPos.second] != 'E' && maze[lastPos.first][lastPos.second] != 'S') {
+                    maze[lastPos.first][lastPos.second] = '.';
+                }
+            }
             break;
         }
         int nx = sx, ny = sy;
@@ -81,12 +99,13 @@ void userSolve(int length, vector<vector<char>>& maze, pair<int, int> start, pai
         }
         if (make_pair(sx, sy) == start) {
             maze[sx][sy] = 'S';
-        } 
+        }
         else {
             maze[sx][sy] = '.';
         }
         sx = nx;
         sy = ny;
+        userPath.push_back(make_pair(sx, sy));
         if (maze[sx][sy] == 'E') {
             moves++;
             cout << "Congratulations! You reached the exit in " << moves << " moves.\n";
@@ -97,11 +116,26 @@ void userSolve(int length, vector<vector<char>>& maze, pair<int, int> start, pai
     }
 }
 
-void solveMaze(int length, vector<vector<char>>& maze, pair<int, int> start, pair<int, int> end) {
-    vector<pair<int, int>> dirs = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
-    queue<pair<int, int>> q; // Initializes a queue
-    vector<vector<bool>> visited(length, vector<bool>(length, false));
-    vector<vector<pair<int, int>>> before(length, vector<pair<int, int>>(length, make_pair(-1, -1))); // Creates a 2D vector that has inner vectors containing pairs of integers (each pair is initialized to -1, -1)
+void solveMaze(int length, vector<vector<char> >& maze, pair<int, int> start, pair<int, int> end, bool userCompleted) {
+    if (userCompleted) {
+        for (int i = 0; i < length; i++) {
+            for (int j = 0; j < length; j++) {
+                cout << maze[i][j] << ' ';
+            }
+            cout << "\n";
+        }
+        cout << "Your path (+) is displayed above." << endl;
+        return;
+    }
+
+    vector<pair<int, int> > dirs;
+    dirs.push_back(make_pair(-1, 0));
+    dirs.push_back(make_pair(1, 0));
+    dirs.push_back(make_pair(0, -1));
+    dirs.push_back(make_pair(0, 1));
+    queue<pair<int, int> > q; // Initializes a queue
+    vector<vector<bool> > visited(length, vector<bool>(length, false));
+    vector<vector<pair<int, int> > > before(length, vector<pair<int, int> >(length, make_pair(-1, -1)));
     int sx = start.first;
     int sy = start.second;
     int ex = end.first;
@@ -109,23 +143,24 @@ void solveMaze(int length, vector<vector<char>>& maze, pair<int, int> start, pai
     q.push(make_pair(sx, sy));
     visited[sx][sy] = true;
     bool fnd = false;
+
     while (!q.empty() && !fnd) {
         pair<int, int> crnt = q.front();
         q.pop();
         int x = crnt.first;
         int y = crnt.second;
-        
-        for (int i = 0; i < dirs.size(); i++) {
+
+        for (int i = 0; i < (int)dirs.size(); i++) {
             int dx = dirs[i].first;
             int dy = dirs[i].second;
-            int nx = x + dx; // Tries moving in the current direction
+            int nx = x + dx;
             int ny = y + dy;
             if (nx >= 0 && ny >= 0 && nx < length && ny < length &&
                 !visited[nx][ny] && (maze[nx][ny] == '.' || maze[nx][ny] == 'E')) {
                 visited[nx][ny] = true;
                 before[nx][ny] = make_pair(x, y);
                 q.push(make_pair(nx, ny));
-                if (nx == ex && ny == ey) { // If the new coordinates equal to the coordinates of the exit, a solution has been found
+                if (nx == ex && ny == ey) {
                     fnd = true;
                     break;
                 }
@@ -135,11 +170,11 @@ void solveMaze(int length, vector<vector<char>>& maze, pair<int, int> start, pai
     if (fnd) {
         int crx = ex;
         int cry = ey;
-        int movecnt = 1; // Include move to exit
-        while(before[crx][cry] != make_pair(-1, -1)) { // Backtracking through all previously visited coordinates
+        int movecnt = 1;
+        while(before[crx][cry] != make_pair(-1, -1)) {
             pair<int, int> prev = before[crx][cry];
             if (maze[crx][cry] != 'E') {
-                maze[crx][cry] = '|'; // Marking path using lines
+                maze[crx][cry] = '|';
                 movecnt++;
             }
             crx = prev.first;
@@ -169,22 +204,30 @@ int main() {
         cout << "Invalid maze length. Restart the program to try again." << endl;
         return 0;
     }
-    vector<vector<char>> maze(length, vector<char>(length)); // Initializes 2D vector
-    pair<pair<int, int>, pair<int, int>> pos = generateMaze(length, maze);
+    vector<vector<char> > maze(length, vector<char>(length));
+    pair<pair<int, int>, pair<int, int> > pos = generateMaze(length, maze);
     pair<int, int> st = pos.first;
     pair<int, int> end = pos.second;
     cout << "Maze has been generated." << endl;
     cout << "Would you like to try and solve the maze? (y or n) ";
     cin >> ans;
-    bool solved = false;
+    vector<pair<int, int> > userPath;
+    bool gaveUp = false;
     if (ans == 'y') {
-        userSolve(length, maze, st, end);
+        userSolve(length, maze, st, end, userPath, gaveUp);
+        if (!gaveUp) {
+            for (auto &pos : userPath) {
+                if (maze[pos.first][pos.second] != 'S' && maze[pos.first][pos.second] != 'E')
+                    maze[pos.first][pos.second] = '+';
+            }
+        }
+        bool solved = !gaveUp && (!userPath.empty() && userPath.back() == end);
         cout << "Alright, if a solution to the maze has been found, it will now be generated." << endl;
-        solveMaze(length, maze, st, end);
+        solveMaze(length, maze, st, end, solved);
     }
     else if (ans == 'n') {
         cout << "Alright, if a solution to the maze has been found, it will now be generated." << endl;
-        solveMaze(length, maze, st, end);
+        solveMaze(length, maze, st, end, false);
     }
     else {
         cout << "You did not enter a valid answer. Exiting now..." << endl;
